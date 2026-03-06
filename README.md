@@ -1,6 +1,8 @@
 gostc - C-based GOST simple Tunnel
 ======
- 
+
+![gostc](gostc.png)
+
 ### A C-based simple security tunnel compatibility gost
 
 Features

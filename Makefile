@@ -1,111 +1,86 @@
-NAME=gost
-BINDIR=bin
-VERSION=$(shell cat gost.go | grep 'Version =' | sed 's/.*\"\(.*\)\".*/\1/g')
-GOBUILD=CGO_ENABLED=0 go build --ldflags="-s -w" -v -x -a
-GOFILES=cmd/gost/*.go
+# Makefile for gostc 1.0.0
+VERBOSE=1
 
-PLATFORM_LIST = \
-	darwin-amd64 \
-	darwin-arm64 \
-	linux-386 \
-	linux-amd64 \
-	linux-armv5 \
-	linux-armv6 \
-	linux-armv7 \
-	linux-armv8 \
-	linux-mips-softfloat \
-	linux-mips-hardfloat \
-	linux-mipsle-softfloat \
-	linux-mipsle-hardfloat \
-	linux-mips64 \
-	linux-mips64le \
-	linux-s390x \
-	linux-riscv64 \
-	freebsd-386 \
-	freebsd-amd64
+# Toolchain configuration
+CROSS_COMPILE = 
+# CROSS_COMPILE = /c/gcc/bin/arm-none-eabi-
+CC = $(CROSS_COMPILE)gcc
+AR = $(CROSS_COMPILE)ar
+RANLIB = $(CROSS_COMPILE)ranlib
+SIZE = $(CROSS_COMPILE)size
 
-WINDOWS_ARCH_LIST = \
-	windows-386 \
-	windows-amd64 \
-	windows-arm64
+# CPU architecture configuration
+CPU = cortex-m3
+# ARCH_FLAGS = -mcpu=$(CPU) -mthumb -mfloat-abi=soft
+ARCH_FLAGS =
 
-all: linux-amd64 darwin-amd64 windows-amd64 # Most used
+# Optimization options
+OPTIMIZATION = -Os -ffunction-sections -fdata-sections
 
-darwin-amd64:
-	GOARCH=amd64 GOOS=darwin $(GOBUILD) -o $(BINDIR)/$(NAME)-$@ $(GOFILES)
+# Warning options
+WARNINGS = -Wall -Wextra -Wstrict-prototypes -Wshadow
 
-darwin-arm64:
-	GOARCH=arm64 GOOS=darwin $(GOBUILD) -o $(BINDIR)/$(NAME)-$@ $(GOFILES)
+# GmSSL specific macro definitions
+DEFINES = \
+	-DNDEBUG 
 
-linux-386:
-	GOARCH=386 GOOS=linux $(GOBUILD) -o $(BINDIR)/$(NAME)-$@ $(GOFILES)
+# Include paths
+INCLUDES = \
+	-I.
 
-linux-amd64:
-	GOARCH=amd64 GOOS=linux $(GOBUILD) -o $(BINDIR)/$(NAME)-$@ $(GOFILES)
+# Complete compilation flags
+CFLAGS = $(ARCH_FLAGS) $(OPTIMIZATION) $(WARNINGS) $(DEFINES) $(INCLUDES)
 
-linux-armv5:
-	GOARCH=arm GOOS=linux GOARM=5 $(GOBUILD) -o $(BINDIR)/$(NAME)-$@ $(GOFILES)
+# All source files
+ALL_SOURCES = \
+	src/gost_client.c \
+	src/gost_relay.c \
+	src/socks5_client.c 
 
-linux-armv6:
-	GOARCH=arm GOOS=linux GOARM=6 $(GOBUILD) -o $(BINDIR)/$(NAME)-$@ $(GOFILES)
+# Convert to object files
+BUILD_DIR = build
+OBJECTS = $(addprefix $(BUILD_DIR)/,$(ALL_SOURCES:.c=.o))
 
-linux-armv7:
-	GOARCH=arm GOOS=linux GOARM=7 $(GOBUILD) -o $(BINDIR)/$(NAME)-$@ $(GOFILES)
+# Target library files
+TARGET_LIB = lib/libgostc.a
+TARGET_BIN = bin/main
 
-linux-armv8:
-	GOARCH=arm64 GOOS=linux $(GOBUILD) -o $(BINDIR)/$(NAME)-$@ $(GOFILES)
+# Default target
+all: prepare $(TARGET_LIB)
 
-linux-mips-softfloat:
-	GOARCH=mips GOMIPS=softfloat GOOS=linux $(GOBUILD) -o $(BINDIR)/$(NAME)-$@ $(GOFILES)
+# Prepare directories
+prepare:
+	@mkdir -p lib
+	@mkdir -p build
 
-linux-mips-hardfloat:
-	GOARCH=mips GOMIPS=hardfloat GOOS=linux $(GOBUILD) -o $(BINDIR)/$(NAME)-$@ $(GOFILES)
+# Compile static library
+$(TARGET_LIB): $(OBJECTS)
+	@echo "Archiving $(TARGET_LIB)..."
+	$(AR) rcs $@ $(OBJECTS)
+	$(RANLIB) $@
+	@echo "=== Library Size ==="
+	$(SIZE) -t $@
+	@echo "===================="
 
-linux-mipsle-softfloat:
-	GOARCH=mipsle GOMIPS=softfloat GOOS=linux $(GOBUILD) -o $(BINDIR)/$(NAME)-$@ $(GOFILES)
+# Generic compilation rule
+$(BUILD_DIR)/%.o: %.c
+	@mkdir -p $(dir build/$*)
+	@echo "Compiling $<..."
+	$(CC) $(CFLAGS) -c $< -o $@
 
-linux-mipsle-hardfloat:
-	GOARCH=mipsle GOMIPS=hardfloat GOOS=linux $(GOBUILD) -o $(BINDIR)/$(NAME)-$@ $(GOFILES)
+# Generate header dependencies (optional)
+DEPENDENCIES = $(OBJECTS:.o=.d)
+-include $(DEPENDENCIES)
 
-linux-mips64:
-	GOARCH=mips64 GOOS=linux $(GOBUILD) -o $(BINDIR)/$(NAME)-$@ $(GOFILES)
+$(BUILD_DIR)/%.d: %.c
+	@mkdir -p $(dir build/$*)
+	@$(CC) $(CFLAGS) -MM -MT build/$*.o $< > build/$*.d
 
-linux-mips64le:
-	GOARCH=mips64le GOOS=linux $(GOBUILD) -o $(BINDIR)/$(NAME)-$@ $(GOFILES)
-
-linux-s390x:
-	GOARCH=s390x GOOS=linux $(GOBUILD) -o $(BINDIR)/$(NAME)-$@ $(GOFILES)
-
-linux-riscv64:
-	GOARCH=riscv64 GOOS=linux $(GOBUILD) -o $(BINDIR)/$(NAME)-$@ $(GOFILES)
-
-freebsd-386:
-	GOARCH=386 GOOS=freebsd $(GOBUILD) -o $(BINDIR)/$(NAME)-$@ $(GOFILES)
-
-freebsd-amd64:
-	GOARCH=amd64 GOOS=freebsd $(GOBUILD) -o $(BINDIR)/$(NAME)-$@ $(GOFILES)
-
-windows-386:
-	GOARCH=386 GOOS=windows $(GOBUILD) -o $(BINDIR)/$(NAME)-$@.exe $(GOFILES)
-
-windows-amd64:
-	GOARCH=amd64 GOOS=windows $(GOBUILD) -o $(BINDIR)/$(NAME)-$@.exe $(GOFILES)
-
-windows-arm64:
-	GOARCH=arm64 GOOS=windows $(GOBUILD) -o $(BINDIR)/$(NAME)-$@.exe $(GOFILES)
-
-gz_releases=$(addsuffix .gz, $(PLATFORM_LIST))
-zip_releases=$(addsuffix .zip, $(WINDOWS_ARCH_LIST))
-
-$(gz_releases): %.gz : %
-	chmod +x $(BINDIR)/$(NAME)-$(basename $@)
-	gzip -f -S -$(VERSION).gz $(BINDIR)/$(NAME)-$(basename $@)
-
-$(zip_releases): %.zip : %
-	zip -m -j $(BINDIR)/$(NAME)-$(basename $@)-$(VERSION).zip $(BINDIR)/$(NAME)-$(basename $@).exe
-
-all-arch: $(PLATFORM_LIST) $(WINDOWS_ARCH_LIST)
-
-releases: $(gz_releases) $(zip_releases)
+# Clean
 clean:
-	rm $(BINDIR)/*
+	rm -rf build lib
+	find . -name "*.o" -delete
+	find . -name "*.d" -delete
+	find . -name "*.a" -delete
+
+.PHONY: all prepare clean install
