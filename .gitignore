@@ -3,18 +3,27 @@
 *.a
 *.so
 
-# Folders
-_obj
-_test
-release
-debian
-bin
-dist/
-
 *.swp
 *.swo
 *.exe
 *.test
 *.bak
 
+资料.md
+
+# Folders
+_obj
+_test
+release
+debian
+bin
+dist
+build
+lib
+plans
+certs
+3rd_zht
+3rd_unix
+
 .vscode/
+.kilocode/

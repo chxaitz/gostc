@@ -15,27 +15,42 @@ CPU = cortex-m3
 ARCH_FLAGS =
 
 # Optimization options
-OPTIMIZATION = -Os -ffunction-sections -fdata-sections
+OPTIMIZATION = -fsanitize=address -fno-omit-frame-pointer -g -Os -ffunction-sections -fdata-sections
 
 # Warning options
 WARNINGS = -Wall -Wextra -Wstrict-prototypes -Wshadow
 
-# GmSSL specific macro definitions
+# Specific macro definitions
 DEFINES = \
 	-DNDEBUG 
 
 # Include paths
 INCLUDES = \
-	-I.
+	-I. \
+	-Iinclude \
+	-I3rd_unix
 
 # Complete compilation flags
 CFLAGS = $(ARCH_FLAGS) $(OPTIMIZATION) $(WARNINGS) $(DEFINES) $(INCLUDES)
 
+LDFLAGS = \
+    -L3rd_unix/lib -llwipcommon \
+	-lmbedcrypto -lmbedtls -lmbedx509 -lpthread 
+
 # All source files
 ALL_SOURCES = \
-	src/gost_client.c \
-	src/gost_relay.c \
-	src/socks5_client.c 
+	3rd_unix/tapif.c \
+	3rd_unix/sys_arch.c \
+	tests/unit/test_tls.c
+# 	src/gostc_api.c \
+# 	src/gostc_config_mgr.c \
+# 	src/gostc_dns_filter.c \
+# 	src/gostc_lwip_intercept.c \
+# 	src/gostc_memory_pool.c \
+# 	src/gostc_os_linux.c \
+# 	src/gostc_tls_engine.c \
+# 	src/re.c
+	
 
 # Convert to object files
 BUILD_DIR = build
@@ -52,6 +67,16 @@ all: prepare $(TARGET_LIB)
 prepare:
 	@mkdir -p lib
 	@mkdir -p build
+
+# Compile binary
+bin: $(TARGET_BIN)
+
+$(TARGET_BIN): $(OBJECTS)
+	@echo "Building $(TARGET_BIN)..."
+	$(CC) $(CFLAGS) -o $@ $(OBJECTS) $(LDFLAGS)
+	@echo "=== Binary Size ==="
+	$(SIZE) -t $@
+	@echo "===================="
 
 # Compile static library
 $(TARGET_LIB): $(OBJECTS)
