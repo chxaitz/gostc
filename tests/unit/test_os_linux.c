@@ -1,7 +1,7 @@
 /**
  * @file    test_os_linux.c
  * @brief   Linux操作系统适配层测试程序
- * @author  Kilo Code
+ * @author  mosser
  * @date    2026-03-07
  * @version 1.0.0
  */

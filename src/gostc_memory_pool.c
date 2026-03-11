@@ -1,7 +1,7 @@
 /**
  * @file    gostc_memory_pool.c
  * @brief   通信代理内存池管理模块实现
- * @author  Kilo Code
+ * @author  mosser
  * @date    2026-03-07
  * @version 1.0.0
  * 

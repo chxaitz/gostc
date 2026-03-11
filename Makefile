@@ -15,7 +15,7 @@ CPU = cortex-m3
 ARCH_FLAGS =
 
 # Optimization options
-OPTIMIZATION = -fsanitize=address -fno-omit-frame-pointer -g -Os -ffunction-sections -fdata-sections
+OPTIMIZATION = -fsanitize=address -fno-omit-frame-pointer -g -O0 -ffunction-sections -fdata-sections
 
 # Warning options
 WARNINGS = -Wall -Wextra -Wstrict-prototypes -Wshadow
@@ -34,20 +34,23 @@ INCLUDES = \
 CFLAGS = $(ARCH_FLAGS) $(OPTIMIZATION) $(WARNINGS) $(DEFINES) $(INCLUDES)
 
 LDFLAGS = \
-    -L3rd_unix/lib -llwipcommon \
+	-L3rd_unix/lib -llwipcommon \
 	-lmbedcrypto -lmbedtls -lmbedx509 -lpthread 
 
 # All source files
 ALL_SOURCES = \
 	3rd_unix/tapif.c \
 	3rd_unix/sys_arch.c \
-	tests/unit/test_tls.c
+	src/gostc_os_linux.c \
+	src/re.c \
+	src/gostc_dns.c \
+	tests/unit/test_dns_regex.c
+# 	tests/unit/test_tls.c
 # 	src/gostc_api.c \
 # 	src/gostc_config_mgr.c \
 # 	src/gostc_dns_filter.c \
 # 	src/gostc_lwip_intercept.c \
 # 	src/gostc_memory_pool.c \
-# 	src/gostc_os_linux.c \
 # 	src/gostc_tls_engine.c \
 # 	src/re.c
 	
@@ -103,9 +106,9 @@ $(BUILD_DIR)/%.d: %.c
 
 # Clean
 clean:
-	rm -rf build lib
+	rm -rf build/*
 	find . -name "*.o" -delete
 	find . -name "*.d" -delete
-	find . -name "*.a" -delete
+# 	find . -name "*.a" -delete
 
 .PHONY: all prepare clean install

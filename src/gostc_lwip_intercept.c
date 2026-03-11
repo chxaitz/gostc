@@ -1,7 +1,7 @@
 /**
  * @file    gostc_lwip_intercept.c
  * @brief   lwIP拦截模块实现
- * @author  Kilo Code
+ * @author  mosser
  * @date    2026-03-07
  * @version 1.0.0
  * 

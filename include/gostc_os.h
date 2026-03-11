@@ -1,7 +1,7 @@
 /**
  * @file    gostc_os.h
  * @brief   通信代理操作系统抽象层头文件
- * @author  Kilo Code
+ * @author  mosser
  * @date    2026-03-07
  * @version 1.0.0
  * 

@@ -1,7 +1,7 @@
 /**
  * @file    gostc_tls.h
  * @brief   通信代理TLS加密头文件
- * @author  Kilo Code
+ * @author  mosser
  * @date    2026-03-07
  * @version 1.0.0
  * 

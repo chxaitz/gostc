@@ -1,7 +1,7 @@
 /**
  * @file    gostc_config_mgr.c
  * @brief   通信代理配置管理模块实现
- * @author  Kilo Code
+ * @author  mosser
  * @date    2026-03-07
  * @version 1.0.0
  * 
